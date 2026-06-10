@@ -1,0 +1,76 @@
+data:
+  symbol: "688981"
+  start: "2020-07-16"
+  oos_start: "2024-01-01"
+  oos_end: "2024-12-31"
+  bar_frequency: 30
+
+backtest:
+  initial_capital: 1000000
+  commission_rate: 0.00025
+  stamp_duty_rate: 0.001
+  exchange_fee_rate: 0.0000487
+  slippage: 0.0002
+
+strategy:
+  buy_threshold: 0.55
+  sell_threshold: 0.45
+  max_daily_trades: 2
+  stop_loss_pct: 0.020
+  trail_stop_pct: 0.015
+  trail_gap_pct: 0.010
+  daily_loss_limit: 0.030
+
+features:
+  window_size: 30
+  prediction_horizon: 3
+  cost_threshold: 0.004
+  ic_threshold: 0.008
+  ic_window: 300
+
+model:
+  d_model: 128
+  nhead: 8
+  num_transformer_layers: 3
+  lstm_hidden: 64
+  dropout: 0.17
+
+training:
+  lr: 0.000634
+  batch_size: 512
+  max_epochs: 200
+  patience: 40
+  pos_weight: 1.2
+  val_ratio: 0.15
+  grad_clip: 1.0
+  use_amp: true
+  num_workers: 0
+  pin_memory: true
+
+walk_forward:
+  train_months: 8
+  test_months: 1
+  step_months: 1
+
+optuna:
+  n_trials: 30
+  timeout: 3600
+  sampler: "TPE"
+  pruner: "Median"
+
+tdx:
+  enabled: false
+  host: "127.0.0.1"
+  port: 7709
+  heartbeat_interval: 30
+  reconnect_attempts: 3
+  quote_fields:
+    - "open"
+    - "high"
+    - "low"
+    - "close"
+    - "volume"
+    - "amount"
+  bar_frequency: 30
+  symbol: "sh688981"
+  live_mode: false
