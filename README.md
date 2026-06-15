@@ -35,7 +35,7 @@
 | 往返成本 | ≈20bp（万2.5佣金 + 印花税 + 0.02%滑点）|
 | Kelly 期望 | **正** |
 
-> **局限性说明**：OOS 仅一年（125 笔来回），Sharpe t 检验 p ≈ 0.22，统计显著性不足；时间编码特征为主要 alpha 来源，下一步方向为接入 Level-2 数据与多标的截面化。
+> **局限性说明**：OOS 仅一年（250 笔来回），Sharpe t 检验 p ≈ 0.22，统计显著性不足；时间编码特征为主要 alpha 来源，下一步方向为接入 Level-2 数据与多标的截面化。
 
 ---
 
@@ -48,7 +48,7 @@ Baostock 行情数据
 数据清洗 + 涨跌停标记
     │
     ▼
-27 个原始特征 ──► IC 滚动筛选（|IC| ≥ 0.008）──► 28 维有效特征
+31 个原始特征 ──► IC 滚动筛选（|IC| ≥ 0.008）──► 28 维有效特征
     │
     ▼
 滑动窗口序列（30 根 × 28 维）
@@ -226,7 +226,7 @@ DayAlpha is an intraday T+0 quantitative trading strategy for SMIC (688981) buil
 | Round-Trip Cost | ≈20bp (0.025% commission + stamp duty + 0.02% slippage) |
 | Kelly Expectation | **Positive** |
 
-> **Limitations**: OOS covers only one year (125 round trips). Sharpe t-test yields p ≈ 0.22, so statistical significance is not established. Time-of-day encoding features are the dominant alpha source. Future work includes Level-2 order book data and cross-sectional portfolio construction.
+> **Limitations**: OOS covers only one year (250 round trips). Sharpe t-test yields p ≈ 0.22, so statistical significance is not established. Time-of-day encoding features are the dominant alpha source. Future work includes Level-2 order book data and cross-sectional portfolio construction.
 
 ---
 
@@ -276,7 +276,7 @@ python main.py --mode live --run_id <run_id>
 | Layer | Detail |
 |-------|--------|
 | Data | Baostock 30-min OHLCV, cleaned and limit-move filtered |
-| Features | 27 raw → 28 selected (Spearman IC rolling filter, \|IC\| ≥ 0.008) |
+| Features | 31 raw → 28 selected (Spearman IC rolling filter, \|IC\| ≥ 0.008) |
 | Input | 30-bar sliding window × 28 features |
 | Models | Transformer-LSTM (d=128, 8 heads, 3 Pre-LN layers) + VanillaLSTM + CNN-LSTM + MLP |
 | Ensemble | Softmax-weighted prediction aggregation |
