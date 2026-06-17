@@ -1,10 +1,10 @@
-name: Deploy report.html to GitHub Pages
+name: Deploy DayAlpha Report to GitHub Pages
 
 on:
   push:
     branches: [master]
     paths:
-      - 'report.html'
+      - 'DayAlpha_Research_Report.html'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -33,7 +33,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp report.html _site/index.html
+          cp DayAlpha_Research_Report.html _site/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

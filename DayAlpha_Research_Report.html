@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DayAlpha — 688981 T+0 Strategy Research Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#060D1F; --surface:#0E1B35; --surface2:#162444;
+    --border:rgba(232,184,75,0.12); --gold:#E8B84B; --gold-dim:rgba(232,184,75,0.18);
+    --green:#4EC994; --red:#E05858; --text:#E8EEFF; --muted:#7A8EAD;
+    --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif; --display:'Space Grotesk',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+  nav{position:sticky;top:0;z-index:100;background:rgba(6,13,31,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;gap:1.5rem;height:52px}
+  .nav-logo{font-family:var(--display);font-weight:700;font-size:15px;color:var(--gold);white-space:nowrap;letter-spacing:.02em;margin-right:.5rem}
+  .nav-links{display:flex;gap:1.25rem;flex:1}
+  .nav-links a{font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:.06em;text-transform:uppercase;transition:color .2s}
+  .nav-links a:hover{color:var(--text)}
+  .lang-btn{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.08em;background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold);border-radius:2px;padding:.25rem .75rem;cursor:pointer;transition:background .2s;white-space:nowrap}
+  .lang-btn:hover{background:rgba(232,184,75,0.3)}
+
+  .container{max-width:1100px;margin:0 auto;padding:0 2rem}
+  section{padding:4rem 0;border-bottom:1px solid var(--border)}
+  section:last-child{border-bottom:none}
+
+  .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--gold);text-transform:uppercase;margin-bottom:.6rem}
+  .section-title{font-family:var(--display);font-size:1.6rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.4rem}
+  .section-desc{color:var(--muted);font-size:13px;max-width:640px;line-height:1.7;margin-bottom:2rem}
+
+  .hero{padding:5rem 0 4rem;border-bottom:1px solid var(--border)}
+  .hero-tag{display:inline-flex;align-items:center;background:var(--gold-dim);border:1px solid var(--border);border-radius:2px;padding:.25rem .75rem;font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem}
+  .hero-title{font-family:var(--display);font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.1;letter-spacing:-.02em;margin-bottom:1rem}
+  .hero-title span{color:var(--gold)}
+  .hero-sub{color:var(--muted);font-size:15px;max-width:620px;line-height:1.7;margin-bottom:2.5rem}
+  .hero-split{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
+  @media(max-width:600px){.hero-split{grid-template-columns:1fr}}
+  .hero-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1.5rem;position:relative;overflow:hidden}
+  .hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+  .hero-card.positive::before{background:var(--green)}
+  .hero-card.negative::before{background:var(--red)}
+  .hc-period{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+  .hc-return{font-family:var(--display);font-size:3rem;font-weight:700;line-height:1;margin:.4rem 0 .2rem}
+  .hc-return.positive{color:var(--green)}
+  .hc-return.negative{color:var(--red)}
+  .hc-sharpe{font-family:var(--mono);font-size:13px;color:var(--muted)}
+  .hc-label{font-size:12px;color:var(--muted);margin-top:.5rem}
+  .hero-thesis{background:var(--surface);border-left:3px solid var(--gold);padding:1.25rem 1.5rem;margin-top:2rem;font-size:14px;color:var(--muted);line-height:1.8}
+  .hero-thesis strong{color:var(--text)}
+  .tag-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+  .tag{font-family:var(--mono);font-size:10px;padding:.15rem .55rem;border:1px solid var(--border);border-radius:2px;color:var(--muted);letter-spacing:.06em}
+
+  .method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+  @media(max-width:700px){.method-grid{grid-template-columns:1fr}}
+  .method-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1.1rem}
+  .mc-num{font-family:var(--mono);font-size:10px;color:var(--gold);margin-bottom:.4rem}
+  .mc-title{font-family:var(--display);font-size:13px;font-weight:600;margin-bottom:.3rem}
+  .mc-body{font-size:12px;color:var(--muted);line-height:1.6}
+
+  .metrics-split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  @media(max-width:700px){.metrics-split{grid-template-columns:1fr}}
+  .period-header{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:.5rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center}
+  .period-badge{display:inline-block;padding:.15rem .6rem;font-size:10px;border-radius:2px;font-weight:600}
+  .badge-pass{background:rgba(78,201,148,.15);color:var(--green)}
+  .badge-fail{background:rgba(224,88,88,.15);color:var(--red)}
+  .metric-row{display:flex;justify-content:space-between;align-items:baseline;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+  .metric-row:last-child{border-bottom:none}
+  .metric-label{color:var(--muted)}
+  .metric-val{font-family:var(--mono);font-weight:500}
+  .pos{color:var(--green)} .neg{color:var(--red)} .neu{color:var(--text)}
+
+  .chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1.25rem 1.5rem}
+  .chart-title{font-family:var(--display);font-size:13px;font-weight:600;margin-bottom:.25rem}
+  .chart-sub{font-size:11px;color:var(--muted);margin-bottom:1rem}
+  .chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:750px){.chart-grid-2{grid-template-columns:1fr}}
+
+  .sig-table{width:100%;border-collapse:collapse;font-size:12px}
+  .sig-table th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);padding:.6rem .8rem;text-align:left;font-weight:400}
+  .sig-table td{padding:.65rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);font-family:var(--mono);font-size:12px}
+  .sig-table tr:last-child td{border-bottom:none}
+  .sig-note{font-size:11px;color:var(--muted);margin-top:.75rem;line-height:1.7}
+
+  .ablation-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:600px){.ablation-grid{grid-template-columns:1fr}}
+  .ablation-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1.25rem 1.5rem}
+  .ac-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.75rem}
+  .ac-sharpe{font-family:var(--display);font-size:2.2rem;font-weight:700;line-height:1}
+  .ac-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:.3rem}
+
+  .flip-table{width:100%;border-collapse:collapse;font-size:12px}
+  .flip-table th{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:.5rem .7rem;border-bottom:1px solid var(--border);text-align:left;font-weight:400}
+  .flip-table td{padding:.55rem .7rem;border-bottom:1px solid rgba(255,255,255,.04);font-family:var(--mono)}
+  .flip-table tr:last-child td{border-bottom:none}
+  .flip-table tr.hl{background:rgba(232,184,75,.05)}
+
+  .finding-list{display:flex;flex-direction:column;gap:.75rem}
+  .finding-item{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1rem 1.25rem;display:grid;grid-template-columns:2rem 1fr;gap:.75rem;align-items:start}
+  .finding-num{font-family:var(--display);font-size:1.1rem;font-weight:700;color:var(--gold);line-height:1.3}
+  .finding-body{font-size:13px;line-height:1.8;color:var(--muted)}
+  .finding-body strong{color:var(--text)}
+
+  footer{padding:2.5rem 0;border-top:1px solid var(--border);text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.05em}
+  footer a{color:var(--gold);text-decoration:none}
+
+  .logic-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);padding:1.25rem 1.5rem;font-size:13px;line-height:1.8;color:var(--muted);margin-top:1rem}
+  .logic-box strong{color:var(--text)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">DayAlpha · 688981</div>
+  <div class="nav-links">
+    <a href="#performance" data-key="nav-perf">Performance</a>
+    <a href="#significance" data-key="nav-sig">Significance</a>
+    <a href="#walkforward" data-key="nav-wf">Walk-Forward</a>
+    <a href="#explain" data-key="nav-exp">Explainability</a>
+    <a href="#ablation" data-key="nav-abl">Ablation</a>
+    <a href="#findings" data-key="nav-find">Findings</a>
+  </div>
+  <button class="lang-btn" id="langBtn" onclick="toggleLang()">中文</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-tag" data-key="hero-tag">Quantitative Research · SMIC 688981 · T+0 Intraday</div>
+    <h1 class="hero-title" data-key="hero-title">When Alpha <span>Decays</span>:<br>A Complete ML Pipeline Study</h1>
+    <p class="hero-sub" data-key="hero-sub">Four-model ensemble (Transformer-LSTM / LSTM / CNN-LSTM / MLP) for 30-minute T+0 trading on SMIC (688981). Full pipeline: IC feature selection → Walk-Forward training → three-layer explainability → dual-engine backtesting → independent OOS verification.</p>
+
+    <div class="hero-split">
+      <div class="hero-card positive">
+        <div class="hc-period" data-key="hc-period-24">2024 OOS — In-sample era</div>
+        <div class="hc-return positive">+4.94%</div>
+        <div class="hc-sharpe">Sharpe 0.804 · Sortino 1.169</div>
+        <div class="hc-label" data-key="hc-label-24">250 trades · Win rate 42.4% · Kelly E[R] = +0.111</div>
+      </div>
+      <div class="hero-card negative">
+        <div class="hc-period" data-key="hc-period-25">2025–2026 True OOS — Never touched</div>
+        <div class="hc-return negative">−19.21%</div>
+        <div class="hc-sharpe">Sharpe −3.332 · Sortino −3.073</div>
+        <div class="hc-label" data-key="hc-label-25">358 trades · Win rate 32.1% · Kelly E[R] = −0.328</div>
+      </div>
+    </div>
+
+    <div class="hero-thesis" data-key="hero-thesis">
+      <strong>Central finding:</strong> A genuine intraday time-of-day alpha existed in SMIC during 2020–2024, captured by <code>time_cos</code> / <code>time_sin</code> features (22% of total SHAP). By 2025–2026 this regularity had <strong>fully decayed</strong> — the same model, unchanged, produced a statistically significant loss (p = 0.0001). Permutation importance confirmed the mechanism: <code>time_sin</code> flipped from rank&nbsp;#1 most-useful (2024) to rank&nbsp;#27 most-harmful (2025–26). Walk-Forward ablation verified the alpha was real in-sample: removing the time features made 2024 Walk-Forward <em>worse</em> (Sharpe −2.42 → −3.54).
+    </div>
+
+    <div class="tag-row">
+      <span class="tag">PyTorch</span><span class="tag">Optuna HPO</span>
+      <span class="tag">Baostock</span><span class="tag">TDX Live Feed</span>
+      <span class="tag">VeighNa Engine</span><span class="tag">SHAP · IG · Permutation</span>
+      <span class="tag">PurgedKFold WF</span><span class="tag">IC Feature Selection</span>
+    </div>
+  </div>
+</div>
+
+<!-- METHODOLOGY -->
+<section>
+  <div class="container">
+    <div class="eyebrow" data-key="ey-method">Pipeline</div>
+    <h2 class="section-title" data-key="sec-method-title">What Was Built</h2>
+    <p class="section-desc" data-key="sec-method-desc">End-to-end research pipeline from raw tick data to live signal generation, covering all standard production-quality components.</p>
+    <div class="method-grid">
+      <div class="method-card">
+        <div class="mc-num">01 · DATA &amp; FEATURES</div>
+        <div class="mc-title" data-key="mc1-title">IC-Based Feature Selection</div>
+        <div class="mc-body" data-key="mc1-body">31 technical / volume / micro-structure features. IC threshold |IC| ≥ 0.008 on rolling 300-bar window. 31 → 28 selected. Baostock 30-min OHLCV, adjusted.</div>
+      </div>
+      <div class="method-card">
+        <div class="mc-num">02 · MODELS</div>
+        <div class="mc-title" data-key="mc2-title">4-Model Ensemble</div>
+        <div class="mc-body" data-key="mc2-body">Transformer-LSTM · LSTM · CNN-LSTM · MLP. PurgedKFold cross-validation with gap. Optuna HPO (30 trials/window). Equal-weight ensemble (val-AUC normalised).</div>
+      </div>
+      <div class="method-card">
+        <div class="mc-num">03 · EXPLAINABILITY</div>
+        <div class="mc-title" data-key="mc3-title">Three-Layer Attribution</div>
+        <div class="mc-body" data-key="mc3-body">SHAP GradientExplainer + temporal heatmap. Integrated Gradients (n=120). Permutation Importance (n_repeats=3). Feature stability across time windows.</div>
+      </div>
+      <div class="method-card">
+        <div class="mc-num">04 · BACKTEST</div>
+        <div class="mc-title" data-key="mc4-title">Dual-Engine Validation</div>
+        <div class="mc-body" data-key="mc4-body">Custom engine: dynamic position sizing (20–40%, confidence-scaled), 3-layer stop-loss (fixed 1.2% · trailing · 3-bar time stop), EOD forced exit. Cross-validated with VeighNa BacktestingEngine. Round-trip cost ≈ 20 bp.</div>
+      </div>
+      <div class="method-card">
+        <div class="mc-num">05 · LIVE</div>
+        <div class="mc-title" data-key="mc5-title">TDX Real-Time Feed</div>
+        <div class="mc-body" data-key="mc5-body">pytdx connector with heartbeat reconnect + fallback servers. Live bar buffer → feature pipeline → ensemble inference → signal log. Signal output to CSV every 30-min bar.</div>
+      </div>
+      <div class="method-card">
+        <div class="mc-num">06 · VALIDATION</div>
+        <div class="mc-title" data-key="mc6-title">Rigorous OOS Design</div>
+        <div class="mc-body" data-key="mc6-body">11-window Walk-Forward (train 8 mo / test 1 mo / step 1 mo). One independent "double-blind" OOS on 2025-01 → 2026-06 data never seen during any tuning decision. Statistical significance via t-test (Lo 2002).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERFORMANCE -->
+<section id="performance">
+  <div class="container">
+    <div class="eyebrow" data-key="ey-perf">Results</div>
+    <h2 class="section-title" data-key="sec-perf-title">Performance — Two Periods</h2>
+    <p class="section-desc" data-key="sec-perf-desc">Same model, same config, same thresholds. Only the evaluation window changed.</p>
+    <div class="metrics-split">
+      <div class="period-block">
+        <div class="period-header">
+          <span data-key="ph-24">2024 OOS · Jan – Dec</span>
+          <span class="period-badge badge-pass" data-key="badge-pos">Positive</span>
+        </div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ret">Total Return</span><span class="metric-val pos">+4.94%</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-bm">Benchmark (B&amp;H)</span><span class="metric-val pos">+78.87%</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-sr">Sharpe Ratio</span><span class="metric-val pos">+0.804</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-so">Sortino Ratio</span><span class="metric-val pos">+1.169</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ca">Calmar Ratio</span><span class="metric-val pos">+0.813</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-dd">Max Drawdown</span><span class="metric-val neg">−6.37%</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-wr">Win Rate</span><span class="metric-val neu">42.4%</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-pr">Payoff Ratio</span><span class="metric-val pos">1.62</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ke">Kelly E[R]</span><span class="metric-val pos">+0.111</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-tc">Trade Count</span><span class="metric-val neu">250</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ah">Avg Hold</span><span class="metric-val neu">2.12 bars</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ex">Exit: time_stop / eod</span><span class="metric-val neu">50% / 44.4%</span></div>
+      </div>
+      <div class="period-block">
+        <div class="period-header">
+          <span data-key="ph-25">2025–26 True OOS · Jan '25 – Jun '26</span>
+          <span class="period-badge badge-fail" data-key="badge-neg">Negative</span>
+        </div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ret2">Total Return</span><span class="metric-val neg">−19.21%</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-bm2">Benchmark (B&amp;H)</span><span class="metric-val pos">+34.70%</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-sr2">Sharpe Ratio</span><span class="metric-val neg">−3.332</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-so2">Sortino Ratio</span><span class="metric-val neg">−3.073</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ca2">Calmar Ratio</span><span class="metric-val neg">−0.757</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-dd2">Max Drawdown</span><span class="metric-val neg">−19.21%</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-wr2">Win Rate</span><span class="metric-val neg">32.1%</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-pr2">Payoff Ratio</span><span class="metric-val neg">1.093</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ke2">Kelly E[R]</span><span class="metric-val neg">−0.328</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-tc2">Trade Count</span><span class="metric-val neu">358</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ah2">Avg Hold</span><span class="metric-val neu">~2 bars</span></div>
+        <div class="metric-row"><span class="metric-label" data-key="ml-ex2">Exit: time_stop / eod</span><span class="metric-val neu">49.2% / 44.4%</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem" class="chart-wrap">
+      <div class="chart-title" data-key="ct-monthly">Monthly Returns — 2025–2026 OOS</div>
+      <div class="chart-sub" data-key="cs-monthly">18-month bar-by-bar. Note brief recovery in Sep–Nov 2025 (+0.74%, +0.20%, +1.01%), followed by renewed decay — consistent with transient price overlap with training distribution.</div>
+      <div style="height:220px;position:relative"><canvas id="monthlyChart"></canvas></div>
+    </div>
+    <div style="margin-top:1rem" class="chart-wrap">
+      <div class="chart-title" data-key="ct-cum">Cumulative Returns — 2024 vs 2025–26 (from 100)</div>
+      <div class="chart-sub" data-key="cs-cum">Same model. The 2024 curve benefited from a time-of-day regularity that no longer exists in 2025–26.</div>
+      <div style="height:220px;position:relative"><canvas id="cumChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNIFICANCE -->
+<section id="significance">
+  <div class="container">
+    <div class="eyebrow" data-key="ey-sig">Statistics</div>
+    <h2 class="section-title" data-key="sec-sig-title">Statistical Significance</h2>
+    <p class="section-desc" data-key="sec-sig-desc">Two complementary methods. Method A tests whether individual trade returns are profitable on average. Method B (Lo 2002) tests whether the full equity curve Sharpe differs from zero.</p>
+    <div class="chart-wrap">
+      <table class="sig-table">
+        <thead>
+          <tr>
+            <th data-key="th-period">Period</th><th data-key="th-method">Method</th>
+            <th data-key="th-n">N</th><th data-key="th-mean">Mean / Sharpe</th>
+            <th data-key="th-t">t-stat</th><th data-key="th-p">p-value</th>
+            <th data-key="th-verdict">Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="pos" data-key="tp-24a-per">2024 OOS</td>
+            <td data-key="tp-24a-met">A · per-trade t-test</td>
+            <td>250</td>
+            <td class="pos" data-key="tp-24a-mean">mean = +0.263%</td>
+            <td class="pos">+2.492</td><td>0.0134</td>
+            <td class="pos" data-key="tp-24a-v">✓ Significant (p&lt;0.05)</td>
+          </tr>
+          <tr>
+            <td class="pos" data-key="tp-24b-per">2024 OOS</td>
+            <td data-key="tp-24b-met">B · bar Sharpe t-test</td>
+            <td>1926</td>
+            <td class="pos" data-key="tp-24b-mean">SR = +0.804</td>
+            <td style="color:var(--muted)">+0.786</td><td>0.4319</td>
+            <td style="color:var(--muted)" data-key="tp-24b-v">✗ Not significant</td>
+          </tr>
+          <tr>
+            <td class="neg" data-key="tp-25a-per">2025–26 OOS</td>
+            <td data-key="tp-25a-met">A · per-trade t-test</td>
+            <td>358</td>
+            <td class="neg" data-key="tp-25a-mean">mean = −0.062%</td>
+            <td style="color:var(--muted)">−0.973</td><td>0.3313</td>
+            <td style="color:var(--muted)" data-key="tp-25a-v">✗ Not significant</td>
+          </tr>
+          <tr>
+            <td class="neg" data-key="tp-25b-per">2025–26 OOS</td>
+            <td data-key="tp-25b-met">B · bar Sharpe t-test</td>
+            <td>2735</td>
+            <td class="neg" data-key="tp-25b-mean">SR = −3.332</td>
+            <td class="neg">−3.881</td><td class="neg">0.0001</td>
+            <td class="neg" data-key="tp-25b-v">✓ Highly significant (p&lt;0.001)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="sig-note" data-key="sig-note">Method A: H₀: mean per-trade return = 0. Method B (Lo 2002): H₀: annualised Sharpe = 0, t ≈ SR_bar × √N. The positive result (+0.804) was never statistically significant by Method B (p=0.43). The negative result (−3.332) is highly significant (p=0.0001). This asymmetry is consistent with the hypothesis that +4.94% reflects a sampling tail rather than the true expected value.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WALK-FORWARD -->
+<section id="walkforward">
+  <div class="container">
+    <div class="eyebrow" data-key="ey-wf">Walk-Forward</div>
+    <h2 class="section-title" data-key="sec-wf-title">11-Window Rolling Validation</h2>
+    <p class="section-desc" data-key="sec-wf-desc">Train 8 months / test 1 month / step 1 month across 2020–2024. Mean Sharpe is negative across windows, suggesting the 2024 single-point result (+0.804) is a favourable draw from a negative-mean distribution.</p>
+    <div class="ablation-grid">
+      <div class="ablation-card">
+        <div class="ac-title" data-key="wf-base-title">WF Baseline · All 28 features</div>
+        <div class="ac-sharpe neg">−2.421</div>
+        <div class="ac-sub" data-key="wf-base-sub">std = 3.093 · win_rate = 37.9% · total_ret = −0.60%/window</div>
+      </div>
+      <div class="ablation-card">
+        <div class="ac-title" data-key="wf-abl-title">WF Ablation · Remove time_cos, time_sin</div>
+        <div class="ac-sharpe neg">−3.540</div>
+        <div class="ac-sub" data-key="wf-abl-sub">std = 3.142 · win_rate = 33.2% · total_ret = −0.86%/window</div>
+      </div>
+    </div>
+    <div style="margin-top:1.25rem" class="chart-wrap">
+      <div class="chart-title" data-key="ct-wf">Walk-Forward: Baseline vs Ablation Comparison</div>
+      <div class="chart-sub" data-key="cs-wf">Removing time_cos / time_sin makes ALL metrics worse on 2024 Walk-Forward. This confirms the features held genuine predictive value in the training era — they are not spurious correlations.</div>
+      <div style="height:200px;position:relative"><canvas id="wfChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPLAINABILITY -->
+<section id="explain">
+  <div class="container">
+    <div class="eyebrow" data-key="ey-exp">Explainability</div>
+    <h2 class="section-title" data-key="sec-exp-title">Three-Layer Feature Attribution</h2>
+    <p class="section-desc" data-key="sec-exp-desc">SHAP and Integrated Gradients measure what the model attends to. Permutation Importance measures what actually helps performance. The gap between them tells the story.</p>
+    <div class="chart-grid-2" style="margin-bottom:1rem">
+      <div class="chart-wrap">
+        <div class="chart-title" data-key="ct-shap24">SHAP Importance — 2024 OOS</div>
+        <div class="chart-sub" data-key="cs-shap24">Top 10 by mean |SHAP| value</div>
+        <div style="height:260px;position:relative"><canvas id="shap24Chart"></canvas></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title" data-key="ct-shap25">SHAP Importance — 2025–26 OOS</div>
+        <div class="chart-sub" data-key="cs-shap25">Rankings virtually identical — model attends to same features</div>
+        <div style="height:260px;position:relative"><canvas id="shap25Chart"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title" data-key="ct-flip">Permutation Importance: Key Shifts Between Periods</div>
+      <div class="chart-sub" data-key="cs-flip">Positive drop_mean = feature is useful (shuffling hurts AUC). Negative = feature is harmful. Sorted by magnitude of change.</div>
+      <table class="flip-table">
+        <thead>
+          <tr>
+            <th data-key="fh-feat">Feature</th><th data-key="fh-r24">2024 Rank</th>
+            <th>2024 drop_mean</th><th data-key="fh-r25">2025–26 Rank</th>
+            <th>2025–26 drop_mean</th><th data-key="fh-shift">Shift</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hl"><td style="color:var(--gold)">time_sin ★</td><td class="pos">#1</td><td class="pos">+0.01001</td><td class="neg">#27</td><td class="neg">−0.00845</td><td class="neg" data-key="fs-tsin">↓26 ranks · flipped sign</td></tr>
+          <tr class="hl"><td style="color:var(--gold)">time_cos ★</td><td class="neg">#28</td><td class="neg">−0.01201</td><td class="neg">#28</td><td class="neg">−0.01140</td><td style="color:var(--muted)" data-key="fs-tcos">─ Consistently harmful both periods</td></tr>
+          <tr><td>ema12</td><td class="pos">#13</td><td style="color:var(--muted)">+0.00020</td><td class="neg">#26</td><td class="neg">−0.00736</td><td class="neg" data-key="fs-ema">↓13 ranks</td></tr>
+          <tr><td>boll_width</td><td class="neg">#15</td><td class="neg">−0.00041</td><td class="pos">#1</td><td class="pos">+0.00450</td><td class="pos" data-key="fs-bw">↑14 ranks · flipped sign</td></tr>
+          <tr><td>mfi14</td><td class="neg">#19</td><td class="neg">−0.00140</td><td class="pos">#2</td><td class="pos">+0.00296</td><td class="pos" data-key="fs-mfi">↑17 ranks · flipped sign</td></tr>
+          <tr><td>atr14_norm</td><td class="pos">#7</td><td class="pos">+0.00195</td><td class="neg">#24</td><td class="neg">−0.00253</td><td class="neg" data-key="fs-atr">↓17 ranks · flipped sign</td></tr>
+          <tr><td>vol_ratio5</td><td class="pos">#3</td><td class="pos">+0.00246</td><td class="pos">#3</td><td class="pos">+0.00233</td><td style="color:var(--muted)" data-key="fs-vol">─ Stable, consistently useful</td></tr>
+          <tr><td>cci20</td><td class="pos">#2</td><td class="pos">+0.00273</td><td class="pos">#6</td><td class="pos">+0.00210</td><td style="color:var(--muted)" data-key="fs-cci">─ Stable, consistently useful</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-grid-2" style="margin-top:1rem">
+      <div class="chart-wrap">
+        <div class="chart-title" data-key="ct-perm24">Permutation Importance — 2024</div>
+        <div class="chart-sub" data-key="cs-perm24">time_sin is #1 most useful. time_cos is #1 most harmful.</div>
+        <div style="height:300px;position:relative"><canvas id="perm24Chart"></canvas></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title" data-key="ct-perm25">Permutation Importance — 2025–26</div>
+        <div class="chart-sub" data-key="cs-perm25">time_sin has flipped to #27. boll_width &amp; mfi14 now lead.</div>
+        <div style="height:300px;position:relative"><canvas id="perm25Chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABLATION -->
+<section id="ablation">
+  <div class="container">
+    <div class="eyebrow" data-key="ey-abl">Ablation Study</div>
+    <h2 class="section-title" data-key="sec-abl-title">Diagnosing the Alpha Decay</h2>
+    <p class="section-desc" data-key="sec-abl-desc">If time_cos / time_sin were spurious correlations, removing them should improve in-sample Walk-Forward. If they captured genuine historical regularities, removing them should hurt. Result: removing them hurts — confirming genuine in-sample alpha that subsequently decayed.</p>
+    <div class="chart-wrap">
+      <div class="chart-title" data-key="ct-abl">Baseline vs Ablation — All Walk-Forward Metrics</div>
+      <div class="chart-sub" data-key="cs-abl">Every metric deteriorated after removing the time features (28→26). This rules out "spurious correlation" and confirms "alpha decay".</div>
+      <div style="height:200px;position:relative"><canvas id="ablMetrics"></canvas></div>
+    </div>
+    <div class="logic-box" data-key="logic-box">
+      <strong>Logic chain:</strong><br>
+      Permutation importance (2025–26) says time_sin is harmful → could be spurious correlation that never worked.<br>
+      Ablation (2024 Walk-Forward) says removing it makes things worse → it was genuinely useful in training era.<br>
+      Conclusion: <strong>NOT spurious correlation. Alpha existed and then decayed.</strong><br><br>
+      <strong>Why 2025–26?</strong> SMIC's price range shifted from ~40–95 yuan (2020–2024) to ~93–130 yuan (2025–2026), moving outside the training distribution. Intraday auction dynamics, institutional participation patterns, and momentum/reversion regimes all likely shifted with the price level and broader microstructure changes in the STAR Market from 2024 onwards.
+    </div>
+  </div>
+</section>
+
+<!-- FINDINGS -->
+<section id="findings">
+  <div class="container">
+    <div class="eyebrow" data-key="ey-find">Key Findings</div>
+    <h2 class="section-title" data-key="sec-find-title">What This Research Demonstrates</h2>
+    <p class="section-desc" data-key="sec-find-desc">The value of this project is not that it found a profitable alpha. It is that it built the machinery to find, verify, test, and diagnose an alpha — and applied that machinery honestly.</p>
+    <div class="finding-list">
+      <div class="finding-item">
+        <div class="finding-num">01</div>
+        <div class="finding-body" data-key="f1">
+          <strong>A genuine time-of-day alpha existed in SMIC 2020–2024.</strong> Three independent lines of evidence: (a) positive Walk-Forward Sharpe windows existed; (b) permutation importance ranked time_sin as #1 most useful feature; (c) ablation experiment confirmed removal degrades Walk-Forward performance.
+        </div>
+      </div>
+      <div class="finding-item">
+        <div class="finding-num">02</div>
+        <div class="finding-body" data-key="f2">
+          <strong>That alpha was not durable beyond the training era.</strong> On a fully independent OOS (2025-01 to 2026-06-12 — never touched during any tuning decision), the same model produced Sharpe −3.332, statistically significant at p = 0.0001. The positive 2024 result (+0.804, p = 0.43) was never statistically significant.
+        </div>
+      </div>
+      <div class="finding-item">
+        <div class="finding-num">03</div>
+        <div class="finding-body" data-key="f3">
+          <strong>The decay mechanism was identified through feature attribution.</strong> SHAP remained stable (same top-5, same 22% share) — the model continued to rely on time features. Permutation importance showed time_sin flipped from rank #1 (useful) to rank #27 (harmful). This means: the intraday timing regularity changed, but the frozen model kept betting on the old pattern.
+        </div>
+      </div>
+      <div class="finding-item">
+        <div class="finding-num">04</div>
+        <div class="finding-body" data-key="f4">
+          <strong>Repeated trials on 2024 inflated the reported result.</strong> ~16 configuration decisions were made by observing 2024 OOS outcomes, creating selection bias analogous to López de Prado's "backtest overfitting via repeated trials." The Walk-Forward distribution (mean Sharpe −2.42) is a better estimate of true expected value than the selected single point (+0.804).
+        </div>
+      </div>
+      <div class="finding-item">
+        <div class="finding-num">05</div>
+        <div class="finding-body" data-key="f5">
+          <strong>Next iteration: expand training, study microstructure regime shifts.</strong> Retraining on 2024–2025 data would allow the model to learn current time-of-day dynamics. Cross-sectional expansion (peer STAR Market names) would improve statistical power (250 trades → 250×N). Adding a regime-detection layer to detect when time-of-day signal quality deteriorates would provide a natural risk-off mechanism.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span data-key="footer-text">DayAlpha · SMIC 688981 T+0 · Research Period 2020-07 → 2026-06 · Built with PyTorch, Baostock, VeighNa, pytdx ·</span>
+    <a href="https://github.com/Fisheraaa" target="_blank">github.com/Fisheraaa</a>
+  </div>
+</footer>
+
+<script>
+// ── TRANSLATIONS ──────────────────────────────────────────────────
+const S = {
+  'nav-perf':     { en:'Performance',      zh:'业绩' },
+  'nav-sig':      { en:'Significance',     zh:'显著性' },
+  'nav-wf':       { en:'Walk-Forward',     zh:'滚动验证' },
+  'nav-exp':      { en:'Explainability',   zh:'可解释性' },
+  'nav-abl':      { en:'Ablation',         zh:'消融实验' },
+  'nav-find':     { en:'Findings',         zh:'核心结论' },
+
+  'hero-tag':   { en:'Quantitative Research · SMIC 688981 · T+0 Intraday', zh:'量化研究 · 中芯国际 688981 · 日内 T+0' },
+  'hero-title': { en:'When Alpha <span>Decays</span>:<br>A Complete ML Pipeline Study', zh:'当 Alpha <span>衰减</span>：<br>一套完整的 ML 量化研究流程' },
+  'hero-sub':   { en:'Four-model ensemble (Transformer-LSTM / LSTM / CNN-LSTM / MLP) for 30-minute T+0 trading on SMIC (688981). Full pipeline: IC feature selection → Walk-Forward training → three-layer explainability → dual-engine backtesting → independent OOS verification.', zh:'基于四模型集成（Transformer-LSTM / LSTM / CNN-LSTM / MLP）的 30 分钟日内 T+0 交易策略研究，标的为中芯国际（688981）。完整流程涵盖 IC 特征选择、滚动窗口训练、三层可解释性分析、双引擎回测交叉验证及严格独立样本外验证。' },
+  'hc-period-24': { en:'2024 OOS — In-sample era', zh:'2024 年样本外 — 训练分布内' },
+  'hc-label-24':  { en:'250 trades · Win rate 42.4% · Kelly E[R] = +0.111', zh:'250 笔交易 · 胜率 42.4% · Kelly 期望 = +0.111' },
+  'hc-period-25': { en:'2025–2026 True OOS — Never touched', zh:'2025–2026 真实 OOS — 从未触碰' },
+  'hc-label-25':  { en:'358 trades · Win rate 32.1% · Kelly E[R] = −0.328', zh:'358 笔交易 · 胜率 32.1% · Kelly 期望 = −0.328' },
+  'hero-thesis': { en:'<strong>Central finding:</strong> A genuine intraday time-of-day alpha existed in SMIC during 2020–2024, captured by <code>time_cos</code> / <code>time_sin</code> features (22% of total SHAP). By 2025–2026 this regularity had <strong>fully decayed</strong> — the same model, unchanged, produced a statistically significant loss (p = 0.0001). Permutation importance confirmed the mechanism: <code>time_sin</code> flipped from rank&nbsp;#1 most-useful (2024) to rank&nbsp;#27 most-harmful (2025–26). Walk-Forward ablation verified the alpha was real in-sample: removing the time features made 2024 Walk-Forward <em>worse</em> (Sharpe −2.42 → −3.54).',
+                   zh:'<strong>核心发现：</strong>中芯国际在 2020–2024 年间存在真实的日内时段 alpha，由 <code>time_cos</code> / <code>time_sin</code> 特征捕捉（占总 SHAP 的 22%）。到 2025–2026 年，这一规律已<strong>完全衰减</strong>——相同模型、相同配置，产生了统计显著的亏损（p = 0.0001）。排列重要性验证了衰减机制：<code>time_sin</code> 从 2024 年排名第 1（最有用）跌至 2025–26 年排名第 27（最有害）。消融实验进一步确认样本内 alpha 是真实的：去掉时段特征后，2024 年 Walk-Forward 结果<em>变差</em>（Sharpe −2.42 → −3.54）。' },
+
+  'ey-method': { en:'Pipeline', zh:'研究流程' },
+  'sec-method-title': { en:'What Was Built', zh:'构建了什么' },
+  'sec-method-desc':  { en:'End-to-end research pipeline from raw tick data to live signal generation, covering all standard production-quality components.', zh:'从原始行情数据到实时信号生成的完整研究流程，覆盖量化研究的各标准生产级模块。' },
+  'mc1-title': { en:'IC-Based Feature Selection', zh:'基于 IC 的特征选择' },
+  'mc1-body':  { en:'31 technical / volume / micro-structure features. IC threshold |IC| ≥ 0.008 on rolling 300-bar window. 31 → 28 selected. Baostock 30-min OHLCV, adjusted.', zh:'31 个技术/量价/微观结构特征。IC 阈值 |IC| ≥ 0.008，滚动 300 根 K 线窗口。31 → 28 个特征入选。Baostock 30 分钟 OHLCV 数据。' },
+  'mc2-title': { en:'4-Model Ensemble', zh:'四模型集成' },
+  'mc2-body':  { en:'Transformer-LSTM · LSTM · CNN-LSTM · MLP. PurgedKFold cross-validation with gap. Optuna HPO (30 trials/window). Equal-weight ensemble (val-AUC normalised).', zh:'Transformer-LSTM · LSTM · CNN-LSTM · MLP。带 gap 的 PurgedKFold 交叉验证。Optuna HPO（30 次试验/窗口）。验证集 AUC 归一化等权集成。' },
+  'mc3-title': { en:'Three-Layer Attribution', zh:'三层特征归因' },
+  'mc3-body':  { en:'SHAP GradientExplainer + temporal heatmap. Integrated Gradients (n=120). Permutation Importance (n_repeats=3). Feature stability across time windows.', zh:'SHAP GradientExplainer + 时序热力图。集成梯度（n=120）。排列重要性（n_repeats=3）。跨时间窗口特征稳定性分析。' },
+  'mc4-title': { en:'Dual-Engine Validation', zh:'双引擎回测验证' },
+  'mc4-body':  { en:'Custom engine: dynamic position sizing (20–40%, confidence-scaled), 3-layer stop-loss (fixed 1.2% · trailing · 3-bar time stop), EOD forced exit. Cross-validated with VeighNa BacktestingEngine. Round-trip cost ≈ 20 bp.', zh:'自研引擎：置信度映射动态仓位（20%~40%），三层止损（固定 1.2% · 追踪止损 · 3 根 K 线时间止损），收盘强平。VeighNa 回测引擎独立交叉验证。往返成本约 20 bp。' },
+  'mc5-title': { en:'TDX Real-Time Feed', zh:'通达信实时行情接入' },
+  'mc5-body':  { en:'pytdx connector with heartbeat reconnect + fallback servers. Live bar buffer → feature pipeline → ensemble inference → signal log. Signal output to CSV every 30-min bar.', zh:'pytdx 连接器，含心跳重连和备用服务器切换。实时 K 线缓冲 → 特征工程 → 集成推理 → 信号记录。每根 30 分钟 K 线收盘后输出信号至 CSV。' },
+  'mc6-title': { en:'Rigorous OOS Design', zh:'严格的样本外验证设计' },
+  'mc6-body':  { en:'11-window Walk-Forward (train 8 mo / test 1 mo / step 1 mo). One independent "double-blind" OOS on 2025-01 → 2026-06 data never seen during any tuning decision. Statistical significance via t-test (Lo 2002).', zh:'11 窗口滚动验证（训练 8 月 / 测试 1 月 / 步长 1 月）。一次"双重干净"的独立 OOS（2025-01 至 2026-06），在所有调参决策完成前从未使用该数据段。Lo (2002) 近似 t 检验评估统计显著性。' },
+
+  'ey-perf': { en:'Results', zh:'回测结果' },
+  'sec-perf-title': { en:'Performance — Two Periods', zh:'两期业绩对比' },
+  'sec-perf-desc':  { en:'Same model, same config, same thresholds. Only the evaluation window changed.', zh:'相同模型、相同配置、相同阈值，仅评估时间窗口不同。' },
+  'ph-24': { en:'2024 OOS · Jan – Dec', zh:'2024 年样本外 · 1 月 – 12 月' },
+  'badge-pos': { en:'Positive', zh:'正收益' },
+  'ph-25': { en:"2025–26 True OOS · Jan '25 – Jun '26", zh:'2025–26 年真实 OOS · 2025年1月–2026年6月' },
+  'badge-neg': { en:'Negative', zh:'负收益' },
+
+  'ml-ret':{ en:'Total Return', zh:'总收益' }, 'ml-ret2':{ en:'Total Return', zh:'总收益' },
+  'ml-bm': { en:'Benchmark (B&H)', zh:'基准（买入持有）' }, 'ml-bm2':{ en:'Benchmark (B&H)', zh:'基准（买入持有）' },
+  'ml-sr': { en:'Sharpe Ratio', zh:'夏普比率' }, 'ml-sr2':{ en:'Sharpe Ratio', zh:'夏普比率' },
+  'ml-so': { en:'Sortino Ratio', zh:'索提诺比率' }, 'ml-so2':{ en:'Sortino Ratio', zh:'索提诺比率' },
+  'ml-ca': { en:'Calmar Ratio', zh:'卡玛比率' }, 'ml-ca2':{ en:'Calmar Ratio', zh:'卡玛比率' },
+  'ml-dd': { en:'Max Drawdown', zh:'最大回撤' }, 'ml-dd2':{ en:'Max Drawdown', zh:'最大回撤' },
+  'ml-wr': { en:'Win Rate', zh:'胜率' }, 'ml-wr2':{ en:'Win Rate', zh:'胜率' },
+  'ml-pr': { en:'Payoff Ratio', zh:'盈亏比' }, 'ml-pr2':{ en:'Payoff Ratio', zh:'盈亏比' },
+  'ml-ke': { en:'Kelly E[R]', zh:'Kelly 期望收益' }, 'ml-ke2':{ en:'Kelly E[R]', zh:'Kelly 期望收益' },
+  'ml-tc': { en:'Trade Count', zh:'交易次数' }, 'ml-tc2':{ en:'Trade Count', zh:'交易次数' },
+  'ml-ah': { en:'Avg Hold', zh:'平均持仓' }, 'ml-ah2':{ en:'Avg Hold', zh:'平均持仓' },
+  'ml-ex': { en:'Exit: time_stop / eod', zh:'出场：时间止损/收盘强平' }, 'ml-ex2':{ en:'Exit: time_stop / eod', zh:'出场：时间止损/收盘强平' },
+
+  'ct-monthly': { en:'Monthly Returns — 2025–2026 OOS', zh:'月度收益 — 2025–2026 年 OOS' },
+  'cs-monthly': { en:'18-month bar-by-bar. Note brief recovery in Sep–Nov 2025 (+0.74%, +0.20%, +1.01%), followed by renewed decay — consistent with transient price overlap with training distribution.', zh:'逐月 18 个月数据。注意 2025 年 9–11 月出现短暂正收益（+0.74%/+0.20%/+1.01%），随后再次衰减——与价格短暂回落至训练分布区间的假设相符。' },
+  'ct-cum': { en:'Cumulative Returns — 2024 vs 2025–26 (from 100)', zh:'累计收益对比 — 2024 年 vs 2025–26 年（基数 100）' },
+  'cs-cum': { en:'Same model. The 2024 curve benefited from a time-of-day regularity that no longer exists in 2025–26.', zh:'相同模型。2024 年曲线受益于在 2025–26 年已不复存在的日内时段规律性。' },
+
+  'ey-sig': { en:'Statistics', zh:'统计检验' },
+  'sec-sig-title': { en:'Statistical Significance', zh:'统计显著性检验' },
+  'sec-sig-desc':  { en:'Two complementary methods. Method A tests whether individual trade returns are profitable on average. Method B (Lo 2002) tests whether the full equity curve Sharpe differs from zero.', zh:'两种互补方法。方法 A 检验单笔交易收益率均值是否显著异于零；方法 B（Lo 2002）检验完整净值曲线的年化夏普是否显著异于零。' },
+  'th-period':  { en:'Period', zh:'期间' },
+  'th-method':  { en:'Method', zh:'检验方法' },
+  'th-n':       { en:'N', zh:'样本数' },
+  'th-mean':    { en:'Mean / Sharpe', zh:'均值 / 夏普' },
+  'th-t':       { en:'t-stat', zh:'t 统计量' },
+  'th-p':       { en:'p-value', zh:'p 值' },
+  'th-verdict': { en:'Verdict', zh:'结论' },
+  'tp-24a-per': { en:'2024 OOS', zh:'2024 年 OOS' },
+  'tp-24a-met': { en:'A · per-trade t-test', zh:'方法 A · 逐笔 t 检验' },
+  'tp-24a-mean':{ en:'mean = +0.263%', zh:'均值 = +0.263%' },
+  'tp-24a-v':   { en:'✓ Significant (p&lt;0.05)', zh:'✓ 显著 (p&lt;0.05)' },
+  'tp-24b-per': { en:'2024 OOS', zh:'2024 年 OOS' },
+  'tp-24b-met': { en:'B · bar Sharpe t-test', zh:'方法 B · 逐 bar 夏普 t 检验' },
+  'tp-24b-mean':{ en:'SR = +0.804', zh:'夏普 = +0.804' },
+  'tp-24b-v':   { en:'✗ Not significant', zh:'✗ 不显著' },
+  'tp-25a-per': { en:'2025–26 OOS', zh:'2025–26 年 OOS' },
+  'tp-25a-met': { en:'A · per-trade t-test', zh:'方法 A · 逐笔 t 检验' },
+  'tp-25a-mean':{ en:'mean = −0.062%', zh:'均值 = −0.062%' },
+  'tp-25a-v':   { en:'✗ Not significant', zh:'✗ 不显著' },
+  'tp-25b-per': { en:'2025–26 OOS', zh:'2025–26 年 OOS' },
+  'tp-25b-met': { en:'B · bar Sharpe t-test', zh:'方法 B · 逐 bar 夏普 t 检验' },
+  'tp-25b-mean':{ en:'SR = −3.332', zh:'夏普 = −3.332' },
+  'tp-25b-v':   { en:'✓ Highly significant (p&lt;0.001)', zh:'✓ 高度显著 (p&lt;0.001)' },
+  'sig-note': { en:'Method A: H₀: mean per-trade return = 0. Method B (Lo 2002): H₀: annualised Sharpe = 0, t ≈ SR_bar × √N. The positive result (+0.804) was never statistically significant by Method B (p=0.43). The negative result (−3.332) is highly significant (p=0.0001). This asymmetry is consistent with the hypothesis that +4.94% reflects a sampling tail rather than the true expected value.', zh:'方法 A：H₀：逐笔收益均值 = 0。方法 B（Lo 2002 近似）：H₀：年化夏普 = 0，t ≈ SR_bar × √N。正结果（+0.804）在方法 B 下从未达到显著（p = 0.43）；负结果（−3.332）高度显著（p = 0.0001）。这种不对称性与"+ 4.94% 反映分布右尾抽样而非真实期望水平"的假设相符。' },
+
+  'ey-wf': { en:'Walk-Forward', zh:'滚动窗口验证' },
+  'sec-wf-title': { en:'11-Window Rolling Validation', zh:'11 窗口滚动验证' },
+  'sec-wf-desc':  { en:'Train 8 months / test 1 month / step 1 month across 2020–2024. Mean Sharpe is negative across windows, suggesting the 2024 single-point result (+0.804) is a favourable draw from a negative-mean distribution.', zh:'2020–2024 年间，训练 8 月 / 测试 1 月 / 步长 1 月，共 11 个窗口。跨窗口 Sharpe 均值为负，说明 2024 年单点结果（+0.804）是从均值为负的分布中抽到的偏好样本。' },
+  'wf-base-title': { en:'WF Baseline · All 28 features', zh:'WF 基线 · 全部 28 个特征' },
+  'wf-base-sub':   { en:'std = 3.093 · win_rate = 37.9% · total_ret = −0.60%/window', zh:'标准差 = 3.093 · 胜率 = 37.9% · 平均收益 = −0.60%/窗口' },
+  'wf-abl-title':  { en:'WF Ablation · Remove time_cos, time_sin', zh:'WF 消融 · 去掉 time_cos 和 time_sin' },
+  'wf-abl-sub':    { en:'std = 3.142 · win_rate = 33.2% · total_ret = −0.86%/window', zh:'标准差 = 3.142 · 胜率 = 33.2% · 平均收益 = −0.86%/窗口' },
+  'ct-wf': { en:'Walk-Forward: Baseline vs Ablation Comparison', zh:'Walk-Forward：基线 vs 消融实验对比' },
+  'cs-wf': { en:'Removing time_cos / time_sin makes ALL metrics worse on 2024 Walk-Forward. This confirms the features held genuine predictive value in the training era — they are not spurious correlations.', zh:'去掉 time_cos / time_sin 后，2024 年 Walk-Forward 的全部指标均变差。这证明这两个特征在训练期具有真实预测价值——不是伪相关。' },
+
+  'ey-exp': { en:'Explainability', zh:'可解释性' },
+  'sec-exp-title': { en:'Three-Layer Feature Attribution', zh:'三层特征归因分析' },
+  'sec-exp-desc':  { en:'SHAP and Integrated Gradients measure what the model attends to. Permutation Importance measures what actually helps performance. The gap between them tells the story.', zh:'SHAP 和集成梯度衡量模型关注什么特征；排列重要性衡量哪些特征真正有助于性能。两者之间的差距揭示了核心问题。' },
+  'ct-shap24': { en:'SHAP Importance — 2024 OOS', zh:'SHAP 重要性 — 2024 年 OOS' },
+  'cs-shap24': { en:'Top 10 by mean |SHAP| value', zh:'按均值 |SHAP| 排序的 Top 10' },
+  'ct-shap25': { en:'SHAP Importance — 2025–26 OOS', zh:'SHAP 重要性 — 2025–26 年 OOS' },
+  'cs-shap25': { en:'Rankings virtually identical — model attends to same features', zh:'排名几乎相同——模型在两期关注的特征完全一致' },
+  'ct-flip': { en:'Permutation Importance: Key Shifts Between Periods', zh:'排列重要性：两期间的关键变化' },
+  'cs-flip': { en:'Positive drop_mean = feature is useful (shuffling hurts AUC). Negative = feature is harmful. Sorted by magnitude of change.', zh:'drop_mean 为正 = 特征有用（打乱后 AUC 下降）；为负 = 特征有害。按变化幅度排序。' },
+  'fh-feat':  { en:'Feature', zh:'特征' },
+  'fh-r24':   { en:'2024 Rank', zh:'2024 排名' },
+  'fh-r25':   { en:'2025–26 Rank', zh:'2025–26 排名' },
+  'fh-shift': { en:'Shift', zh:'变化' },
+  'fs-tsin': { en:'↓26 ranks · flipped sign', zh:'↓26 名 · 符号反转' },
+  'fs-tcos': { en:'─ Consistently harmful both periods', zh:'─ 两期均为最有害特征' },
+  'fs-ema':  { en:'↓13 ranks', zh:'↓13 名' },
+  'fs-bw':   { en:'↑14 ranks · flipped sign', zh:'↑14 名 · 符号反转' },
+  'fs-mfi':  { en:'↑17 ranks · flipped sign', zh:'↑17 名 · 符号反转' },
+  'fs-atr':  { en:'↓17 ranks · flipped sign', zh:'↓17 名 · 符号反转' },
+  'fs-vol':  { en:'─ Stable, consistently useful', zh:'─ 稳定，两期均有用' },
+  'fs-cci':  { en:'─ Stable, consistently useful', zh:'─ 稳定，两期均有用' },
+  'ct-perm24': { en:'Permutation Importance — 2024', zh:'排列重要性 — 2024 年' },
+  'cs-perm24': { en:'time_sin is #1 most useful. time_cos is #1 most harmful.', zh:'time_sin 排名第 1（最有用）；time_cos 排名最后（最有害）。' },
+  'ct-perm25': { en:'Permutation Importance — 2025–26', zh:'排列重要性 — 2025–26 年' },
+  'cs-perm25': { en:'time_sin has flipped to #27. boll_width &amp; mfi14 now lead.', zh:'time_sin 已跌至第 27 名；boll_width 和 mfi14 跃升为最有用特征。' },
+
+  'ey-abl': { en:'Ablation Study', zh:'消融实验' },
+  'sec-abl-title': { en:'Diagnosing the Alpha Decay', zh:'诊断 Alpha 衰减机制' },
+  'sec-abl-desc':  { en:'If time_cos / time_sin were spurious correlations, removing them should improve in-sample Walk-Forward. If they captured genuine historical regularities, removing them should hurt. Result: removing them hurts — confirming genuine in-sample alpha that subsequently decayed.', zh:'若 time_cos / time_sin 是伪相关，去掉后 Walk-Forward 应改善；若它们捕捉了真实的历史规律，去掉后应变差。结论：去掉后变差——证实样本内 alpha 是真实存在的，只是随后衰减了。' },
+  'ct-abl': { en:'Baseline vs Ablation — All Walk-Forward Metrics', zh:'基线 vs 消融实验 — 全部 Walk-Forward 指标' },
+  'cs-abl': { en:'Every metric deteriorated after removing the time features (28→26). This rules out "spurious correlation" and confirms "alpha decay".', zh:'去掉时段特征（28 → 26 个）后，全部指标均变差。这排除了"伪相关"假说，确认了"alpha 衰减"。' },
+  'logic-box': {
+    en:'<strong>Logic chain:</strong><br>Permutation importance (2025–26) says time_sin is harmful → could be spurious correlation that never worked.<br>Ablation (2024 Walk-Forward) says removing it makes things worse → it was genuinely useful in training era.<br>Conclusion: <strong>NOT spurious correlation. Alpha existed and then decayed.</strong><br><br><strong>Why 2025–26?</strong> SMIC\'s price range shifted from ~40–95 yuan (2020–2024) to ~93–130 yuan (2025–2026), moving outside the training distribution. Intraday auction dynamics, institutional participation patterns, and momentum/reversion regimes all likely shifted with the price level and broader microstructure changes in the STAR Market from 2024 onwards.',
+    zh:'<strong>逻辑链：</strong><br>排列重要性（2025–26）显示 time_sin 有害 → 可能是从未有效的伪相关。<br>消融实验（2024 Walk-Forward）显示去掉它表现变差 → 它在训练期确实有用。<br>结论：<strong>不是伪相关，而是 alpha 衰减。</strong><br><br><strong>为何 2025–26 会衰减？</strong>中芯国际的价格区间从 2020–2024 年的约 40–95 元上移至 2025–2026 年的约 93–130 元，漂移出了训练分布。日内竞价动态、机构参与模式及动量/反转机制，可能均随价格水平和科创板微观结构的演变而改变。'
+  },
+
+  'ey-find': { en:'Key Findings', zh:'核心结论' },
+  'sec-find-title': { en:'What This Research Demonstrates', zh:'这项研究说明了什么' },
+  'sec-find-desc':  { en:'The value of this project is not that it found a profitable alpha. It is that it built the machinery to find, verify, test, and diagnose an alpha — and applied that machinery honestly.', zh:'这个项目的价值不在于找到了一个能盈利的 alpha，而在于构建了一套完整的机制来发现、验证、测试和诊断 alpha——并诚实地运用了这套机制。' },
+  'f1': { en:'<strong>A genuine time-of-day alpha existed in SMIC 2020–2024.</strong> Three independent lines of evidence: (a) positive Walk-Forward Sharpe windows existed; (b) permutation importance ranked time_sin as #1 most useful feature; (c) ablation experiment confirmed removal degrades Walk-Forward performance.',
+          zh:'<strong>中芯国际 2020–2024 年间存在真实的日内时段 alpha。</strong> 三条独立证据：(a) Walk-Forward 部分窗口 Sharpe 为正；(b) 排列重要性将 time_sin 列为第 1 有用特征；(c) 消融实验证实去掉该特征后 Walk-Forward 表现下降。' },
+  'f2': { en:'<strong>That alpha was not durable beyond the training era.</strong> On a fully independent OOS (2025-01 to 2026-06-12 — never touched during any tuning decision), the same model produced Sharpe −3.332, statistically significant at p = 0.0001. The positive 2024 result (+0.804, p = 0.43) was never statistically significant.',
+          zh:'<strong>该 alpha 在训练期之后未能持续。</strong> 在一次完全独立的 OOS（2025-01 至 2026-06-12，在任何调参决策中从未触碰过该数据）中，相同模型产生了 Sharpe −3.332，统计显著性 p = 0.0001。2024 年的正向结果（+0.804，p = 0.43）从未达到统计显著的水平。' },
+  'f3': { en:'<strong>The decay mechanism was identified through feature attribution.</strong> SHAP remained stable (same top-5, same 22% share) — the model continued to rely on time features. Permutation importance showed time_sin flipped from rank #1 (useful) to rank #27 (harmful). This means: the intraday timing regularity changed, but the frozen model kept betting on the old pattern.',
+          zh:'<strong>衰减机制通过特征归因分析得以定位。</strong> SHAP 保持稳定（相同的 Top-5，相同的 22% 占比）——模型在两期依然同等程度地依赖时段特征。排列重要性显示 time_sin 从排名第 1（有用）跌至排名第 27（有害）。这精确说明：日内时段规律发生了变化，但固定权重的模型仍在按旧规律下注。' },
+  'f4': { en:'<strong>Repeated trials on 2024 inflated the reported result.</strong> ~16 configuration decisions were made by observing 2024 OOS outcomes, creating selection bias analogous to López de Prado\'s "backtest overfitting via repeated trials." The Walk-Forward distribution (mean Sharpe −2.42) is a better estimate of true expected value than the selected single point (+0.804).',
+          zh:'<strong>对 2024 年的反复调参造成了报告结果的虚高。</strong> 约 16 次配置决策是通过观察 2024 年 OOS 表现做出的，产生了类似 López de Prado 所述"通过多次试验的回测过拟合"的选择偏差。Walk-Forward 分布（Sharpe 均值 −2.42）比被选出汇报的单点最优值（+0.804）更能代表真实期望水平。' },
+  'f5': { en:'<strong>Next iteration: expand training, study microstructure regime shifts.</strong> Retraining on 2024–2025 data would allow the model to learn current time-of-day dynamics. Cross-sectional expansion (peer STAR Market names) would improve statistical power (250 trades → 250×N). Adding a regime-detection layer to detect when time-of-day signal quality deteriorates would provide a natural risk-off mechanism.',
+          zh:'<strong>下一步迭代：扩展训练数据，研究微观结构机制转变。</strong> 纳入 2024–2025 年数据重新训练，使模型学习当前日内时段动态规律。横向扩展至科创板同行业其他标的，提升统计功效（250 笔 → 250×N 笔）。增加机制检测层，当日内时段信号质量下降时自动降仓，提供独立于止损参数的风险控制机制。' },
+
+  'footer-text': { en:'DayAlpha · SMIC 688981 T+0 · Research Period 2020-07 → 2026-06 · Built with PyTorch, Baostock, VeighNa, pytdx ·', zh:'DayAlpha · 中芯国际 688981 T+0 · 研究区间 2020-07 → 2026-06 · 技术栈：PyTorch, Baostock, VeighNa, pytdx ·' },
+};
+
+// ── LANGUAGE TOGGLE ──────────────────────────────────────────────
+let currentLang = 'en';
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'zh' : 'en';
+  document.getElementById('langBtn').textContent = currentLang === 'en' ? '中文' : 'EN';
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.getAttribute('data-key');
+    if (S[key] && S[key][currentLang] !== undefined) {
+      el.innerHTML = S[key][currentLang];
+    }
+  });
+  // Update WF chart labels
+  updateWfLabels();
+}
+function updateWfLabels() {
+  const labels = currentLang === 'zh'
+    ? ['夏普均值','胜率（×10）','总收益（×100）']
+    : ['Sharpe Mean','Win Rate (×10)','Total Return (×100)'];
+  wfChart.data.labels = labels;
+  const dl = currentLang === 'zh'
+    ? ['基线（28 个特征）','消融（26 个特征）']
+    : ['Baseline (28 features)','Ablation (26 features)'];
+  wfChart.data.datasets[0].label = dl[0];
+  wfChart.data.datasets[1].label = dl[1];
+  wfChart.update();
+  // ablation chart
+  ablChart.data.labels = currentLang === 'zh'
+    ? ['夏普均值','索提诺均值','胜率','最大回撤（×10）']
+    : ['Sharpe Mean','Sortino Mean','Win Rate','−MaxDD (×10)'];
+  ablChart.data.datasets[0].label = currentLang === 'zh' ? '基线（28 个特征）' : 'Baseline (28 features)';
+  ablChart.data.datasets[1].label = currentLang === 'zh' ? '消融（26 个特征）' : 'Ablation (26 features)';
+  ablChart.update();
+  // cumChart legend
+  cumChart.data.datasets[0].label = currentLang === 'zh' ? '2025–26 年 OOS' : '2025–26 OOS';
+  cumChart.data.datasets[1].label = currentLang === 'zh' ? '2024 年 OOS（11 个点）' : '2024 OOS (11 pts)';
+  cumChart.update();
+}
+
+// ── CHARTS ───────────────────────────────────────────────────────
+Chart.defaults.color = '#7A8EAD';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 11;
+
+const months25 = ["Jan'25","Feb'25","Mar'25","Apr'25","May'25","Jun'25","Jul'25","Aug'25","Sep'25","Oct'25","Nov'25","Dec'25","Jan'26","Feb'26","Mar'26","Apr'26","May'26","Jun'26"];
+const ret25 = [-2.21,-1.77,-2.05,-1.68,-1.43,-1.62,-1.55,-0.37,0.74,0.20,1.01,-1.75,-1.65,-2.18,-2.40,-0.10,-0.43,-2.04];
+
+new Chart(document.getElementById('monthlyChart'), {
+  type:'bar',
+  data:{ labels:months25, datasets:[{ data:ret25, backgroundColor:ret25.map(v=>v>=0?'rgba(78,201,148,0.7)':'rgba(224,88,88,0.7)'), borderWidth:0, borderRadius:2 }]},
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{callback:v=>v+'%'} }, x:{grid:{display:false}} } }
+});
+
+const cum25labels = ["Jan'25","Feb'25","Mar'25","Apr'25","May'25","Jun'25","Jul'25","Aug'25","Sep'25","Oct'25","Nov'25","Dec'25","Jan'26","Feb'26","Mar'26","Apr'26","May'26","Jun'26",""];
+const cumChart = new Chart(document.getElementById('cumChart'), {
+  type:'line',
+  data:{ labels:cum25labels, datasets:[
+    { label:'2025–26 OOS', data:[100,97.79,96.06,94.09,92.51,91.19,89.71,88.32,87.99,88.64,88.82,89.72,88.15,86.69,84.8,82.77,82.68,82.33,80.65], borderColor:'#E05858', backgroundColor:'rgba(224,88,88,0.08)', tension:.3, pointRadius:0, borderWidth:2, fill:true },
+    { label:'2024 OOS (11 pts)', data:[100,99.29,98.05,98.6,97.2,97.22,98.1,96.88,98.84,105.21,107.24,107.01,...new Array(7).fill(null)], borderColor:'#4EC994', backgroundColor:'transparent', tension:.3, pointRadius:0, borderWidth:2, borderDash:[5,4] }
+  ]},
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top', labels:{ font:{size:11}, boxWidth:12, padding:16 } } }, scales:{ y:{ticks:{callback:v=>v.toFixed(0)}, grid:{color:'rgba(255,255,255,0.05)'}}, x:{grid:{display:false}, ticks:{maxTicksLimit:9}} } }
+});
+
+const wfChart = new Chart(document.getElementById('wfChart'), {
+  type:'bar',
+  data:{ labels:['Sharpe Mean','Win Rate (×10)','Total Return (×100)'],
+    datasets:[
+      { label:'Baseline (28 features)', data:[-2.421,3.788,-0.601], backgroundColor:'rgba(232,184,75,0.55)', borderRadius:2 },
+      { label:'Ablation (26 features)', data:[-3.540,3.318,-0.863], backgroundColor:'rgba(224,88,88,0.55)', borderRadius:2 }
+    ]},
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top', labels:{ font:{size:11}, boxWidth:12 } } }, scales:{ x:{grid:{display:false}}, y:{grid:{color:'rgba(255,255,255,0.05)'}} } }
+});
+
+const shap24f = ['time_cos','time_sin','ema12','ma20_dev','mfi14','roc5','atr14_norm','stoch_k','adx14','williams_r'];
+const shap24v = [0.00665,0.00594,0.00430,0.00296,0.00249,0.00233,0.00227,0.00213,0.00207,0.00196];
+new Chart(document.getElementById('shap24Chart'), {
+  type:'bar',
+  data:{ labels:shap24f, datasets:[{ data:shap24v, backgroundColor:shap24f.map(f=>f.startsWith('time')?'rgba(232,184,75,0.75)':'rgba(78,201,148,0.45)'), borderWidth:0, borderRadius:2 }]},
+  options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>v.toFixed(4)}}, y:{grid:{display:false}} } }
+});
+
+const shap25f = ['time_cos','time_sin','ema12','ma20_dev','mfi14','amount_share','adx14','atr14_norm','boll_width','pv_corr10'];
+const shap25v = [0.00611,0.00538,0.00326,0.00262,0.00232,0.00212,0.00210,0.00207,0.00190,0.00189];
+new Chart(document.getElementById('shap25Chart'), {
+  type:'bar',
+  data:{ labels:shap25f, datasets:[{ data:shap25v, backgroundColor:shap25f.map(f=>f.startsWith('time')?'rgba(232,184,75,0.75)':'rgba(78,201,148,0.45)'), borderWidth:0, borderRadius:2 }]},
+  options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>v.toFixed(4)}}, y:{grid:{display:false}} } }
+});
+
+const perm24d = [{f:'time_sin',v:.01001},{f:'cci20',v:.00273},{f:'vol_ratio5',v:.00246},{f:'tick_impact',v:.00216},{f:'roc5',v:.00205},{f:'di_diff',v:.00200},{f:'atr14_norm',v:.00195},{f:'boll_pos',v:.00072},{f:'obv_norm',v:.00026},{f:'ema12',v:.00020},{f:'vwap_dev',v:-.00119},{f:'mfi14',v:-.00140},{f:'ma20_dev',v:-.00280},{f:'stoch_k',v:-.00312},{f:'williams_r',v:-.00441},{f:'adx14',v:-.00582},{f:'time_cos',v:-.01201}];
+new Chart(document.getElementById('perm24Chart'), {
+  type:'bar',
+  data:{ labels:perm24d.map(d=>d.f), datasets:[{ data:perm24d.map(d=>d.v), backgroundColor:perm24d.map(d=>d.f.startsWith('time')?'rgba(232,184,75,0.8)':d.v>=0?'rgba(78,201,148,0.55)':'rgba(224,88,88,0.55)'), borderWidth:0, borderRadius:2 }]},
+  options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>v.toFixed(3)}}, y:{grid:{display:false},ticks:{font:{size:10}}} } }
+});
+
+const perm25d = [{f:'boll_width',v:.00450},{f:'mfi14',v:.00296},{f:'vol_ratio5',v:.00233},{f:'boll_pos',v:.00211},{f:'di_diff',v:.00211},{f:'cci20',v:.00210},{f:'ma20_dev',v:.00106},{f:'rsi14',v:.00039},{f:'tick_impact',v:.00016},{f:'macd_signal',v:-.00017},{f:'roc5',v:-.00100},{f:'vwap_dev',v:-.00137},{f:'stoch_k',v:-.00244},{f:'atr14_norm',v:-.00253},{f:'kama_dev',v:-.00272},{f:'ema12',v:-.00736},{f:'time_sin',v:-.00845},{f:'time_cos',v:-.01140}];
+new Chart(document.getElementById('perm25Chart'), {
+  type:'bar',
+  data:{ labels:perm25d.map(d=>d.f), datasets:[{ data:perm25d.map(d=>d.v), backgroundColor:perm25d.map(d=>d.f.startsWith('time')?'rgba(232,184,75,0.8)':d.v>=0?'rgba(78,201,148,0.55)':'rgba(224,88,88,0.55)'), borderWidth:0, borderRadius:2 }]},
+  options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>v.toFixed(3)}}, y:{grid:{display:false},ticks:{font:{size:10}}} } }
+});
+
+const ablChart = new Chart(document.getElementById('ablMetrics'), {
+  type:'bar',
+  data:{ labels:['Sharpe Mean','Sortino Mean','Win Rate','−MaxDD (×10)'],
+    datasets:[
+      { label:'Baseline (28 features)', data:[-2.421,-1.621,0.379,-0.146], backgroundColor:'rgba(232,184,75,0.55)', borderRadius:2 },
+      { label:'Ablation (26 features)', data:[-3.540,-2.721,0.332,-0.163], backgroundColor:'rgba(224,88,88,0.55)', borderRadius:2 }
+    ]},
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top', labels:{ font:{size:11}, boxWidth:12 } } }, scales:{ x:{grid:{display:false}}, y:{grid:{color:'rgba(255,255,255,0.05)'}} } }
+});
+</script>
+</body>
+</html>
